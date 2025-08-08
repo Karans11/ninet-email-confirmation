@@ -1,0 +1,134 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmation - NineT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Verifying Section -->
+        <div id="verifying" class="section">
+            <div class="icon">🚀</div>
+            <h1>NineT</h1>
+            <h2>Verifying your email...</h2>
+        </div>
+
+        <!-- Success Section -->
+        <div id="success" class="section hidden">
+            <div class="icon">✅</div>
+            <h2>Email Verified Successfully!</h2>
+            <p>Your NineT account has been verified. You can now return to the mobile app and sign in with your credentials.</p>
+        </div>
+
+        <!-- Failure Section -->
+        <div id="failure" class="section hidden">
+            <div class="icon">❌</div>
+            <h2>Verification Failed</h2>
+            <p>There was an issue verifying your email. Please try again or contact support.</p>
+        </div>
+
+        <!-- Next Steps -->
+        <div id="next-steps" class="section hidden">
+            <h3>📱 Next Steps:</h3>
+            <ol class="text-start">
+                <li>Return to the NineT mobile app</li>
+                <li>Sign in with your email and password</li>
+                <li>Start reading AI news!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Simulate email verification logic (replace with actual API call)
+        document.addEventListener("DOMContentLoaded", () => {
+            const verifying = document.getElementById("verifying");
+            const success = document.getElementById("success");
+            const failure = document.getElementById("failure");
+            const nextSteps = document.getElementById("next-steps");
+
+            // Simulate verification process (e.g., checking token from URL)
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get("token"); // Example: ?token=xyz
+                if (token) {
+                    // Simulate success (replace with actual API verification)
+                    verifying.classList.add("hidden");
+                    success.classList.remove("hidden");
+                    nextSteps.classList.remove("hidden");
+                } else {
+                    // Simulate failure
+                    verifying.classList.add("hidden");
+                    failure.classList.remove("hidden");
+                }
+            }, 2000); // Simulate 2-second verification delay
+        });
+    </script>
+</body>
+</html>
